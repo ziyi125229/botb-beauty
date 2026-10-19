@@ -1,6 +1,10 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Copy, History, RefreshCw, Save, Sparkles } from 'lucide-react'
 import { formatServicePrice, services, storeInfo } from '../data/mockData'
+import {
+  PRESENTATION_SERVICE_ID,
+  PRESENTATION_SERVICE_NAME,
+} from '../data/presentation'
 import {
   generateMarketingContent,
   MARKETING_SCENES,
@@ -33,13 +37,16 @@ export function MarketingPage() {
     saveMarketingPlan,
     updateMarketingPlan,
     deleteMarketingPlan,
+    presentationFocus,
   } = useAppData()
 
   const [scene, setScene] = useState<MarketingSceneType>('new_customer_campaign')
-  const [prompt, setPrompt] = useState(MARKETING_SCENES[0].defaultPrompt)
+  const [prompt, setPrompt] = useState(
+    `为「${PRESENTATION_SERVICE_NAME}」生成一场新客拓客活动方案，并附朋友圈文案`,
+  )
   const [goal, setGoal] = useState(MARKETING_SCENES[0].defaultGoal)
   const [audience, setAudience] = useState(MARKETING_SCENES[0].defaultAudience)
-  const [serviceId, setServiceId] = useState('svc-clean-hydrate')
+  const [serviceId, setServiceId] = useState(PRESENTATION_SERVICE_ID)
   const [activityDate, setActivityDate] = useState('')
   const [promoRule, setPromoRule] = useState('')
   const [tone, setTone] = useState<MarketingTone>('专业可信')
@@ -57,6 +64,20 @@ export function MarketingPage() {
   const [editedText, setEditedText] = useState('')
   const [isDirty, setIsDirty] = useState(false)
   const [activePlanId, setActivePlanId] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (!presentationFocus) return
+    if (presentationFocus.serviceId) {
+      setServiceId(presentationFocus.serviceId)
+    }
+    if (presentationFocus.customerId) {
+      setCustomerId(presentationFocus.customerId)
+    }
+    setPrompt(
+      `为「${PRESENTATION_SERVICE_NAME}」生成一场新客拓客活动方案，并附朋友圈文案`,
+    )
+    setScene('new_customer_campaign')
+  }, [presentationFocus?.token, presentationFocus])
 
   const needsCustomer =
     scene === 'old_customer_revisit' || scene === 'new_customer_invite'

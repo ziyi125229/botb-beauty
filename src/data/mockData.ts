@@ -9,6 +9,10 @@ import type {
   Technician,
 } from '../types'
 import { addDays, addMinutesToTime, getTodayDate } from '../lib/dateUtils'
+import {
+  createPresentationCustomer,
+  createPresentationSession,
+} from './presentation'
 
 /** 示例门店基础信息（虚构） */
 export const storeInfo: StoreInfo = {
@@ -112,6 +116,7 @@ export const technicians: Technician[] = [
 ]
 
 export const seedCustomers: Customer[] = [
+  createPresentationCustomer(),
   {
     id: 'cus-001',
     name: '刘梦瑶',
@@ -415,6 +420,7 @@ export function createSeedChatSessions(): ChatSession[] {
   const yesterday = addDays(today, -1)
 
   return [
+    createPresentationSession(),
     {
       id: 'chat-001',
       customerId: 'cus-001',

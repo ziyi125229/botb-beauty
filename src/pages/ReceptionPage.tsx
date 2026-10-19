@@ -10,6 +10,10 @@ import {
   formatAppointmentSummary,
   getServiceById,
 } from '../lib/bookingService'
+import {
+  PRESENTATION_CUSTOMER_ID,
+  PRESENTATION_SESSION_ID,
+} from '../data/presentation'
 import { getTodayDate, nowISO, nowTimeLabel } from '../lib/dateUtils'
 import { evaluateIntent } from '../lib/intentRules'
 import { generateReply, isMedicalQuery } from '../lib/replyEngine'
@@ -51,9 +55,15 @@ export function ReceptionPage() {
     recordCustomerConsult,
     updateCustomer,
     addFollowUpTask,
+    presentationFocus,
   } = useAppData()
 
-  const [activeId, setActiveId] = useState(chatSessions[0]?.id ?? '')
+  const [activeId, setActiveId] = useState(
+    () =>
+      chatSessions.find((s) => s.id === PRESENTATION_SESSION_ID)?.id ??
+      chatSessions[0]?.id ??
+      '',
+  )
   const [input, setInput] = useState('')
   const [drafts, setDrafts] = useState<Record<string, BookingDraft>>({})
   const [busy, setBusy] = useState(false)
@@ -68,6 +78,19 @@ export function ReceptionPage() {
   const latestApt = activeSession?.latestAppointmentId
     ? getAppointmentById(activeSession.latestAppointmentId)
     : getCustomerAppointments(activeSession?.customerId ?? '')[0]
+
+  useEffect(() => {
+    if (!presentationFocus?.sessionId) return
+    if (chatSessions.some((s) => s.id === presentationFocus.sessionId)) {
+      setActiveId(presentationFocus.sessionId)
+    }
+  }, [presentationFocus?.token, presentationFocus?.sessionId, chatSessions])
+
+  useEffect(() => {
+    if (!chatSessions.some((s) => s.id === activeId) && chatSessions[0]) {
+      setActiveId(chatSessions[0].id)
+    }
+  }, [chatSessions, activeId])
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -416,13 +439,25 @@ export function ReceptionPage() {
 
       <section className="flex min-w-0 flex-1 flex-col">
         <div className="border-b border-border px-5 py-3.5">
-          <h3 className="text-sm font-semibold text-text">
-            {activeSession?.customerName ?? '选择会话'}
-          </h3>
+          <div className="flex flex-wrap items-center gap-2">
+            <h3 className="text-sm font-semibold text-text">
+              {activeSession?.customerName ?? '选择会话'}
+            </h3>
+            {activeSession?.customerId === PRESENTATION_CUSTOMER_ID ? (
+              <span className="rounded-md border border-brand-200 bg-brand-50 px-1.5 py-0.5 text-[11px] text-brand-700">
+                路演客户
+              </span>
+            ) : null}
+          </div>
           <p className="mt-0.5 text-xs text-text-muted">
             AI 接待助手 · 规则预约流程（前端模拟，未接入大模型）
             {draft.step !== 'idle' ? ` · 当前步骤：${draft.step}` : ''}
           </p>
+          {activeSession?.customerId === PRESENTATION_CUSTOMER_ID ? (
+            <p className="mt-1.5 text-xs text-brand-700">
+              建议流程：先问「基础清洁补水多少钱？」，再说「我想预约一次护理」完成预约。
+            </p>
+          ) : null}
         </div>
 
         <div className="flex-1 space-y-4 overflow-y-auto bg-surface/40 px-5 py-5">

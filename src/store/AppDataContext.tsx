@@ -18,6 +18,14 @@ import {
   storeInfo,
 } from '../data/mockData'
 import {
+  createPresentationCustomer,
+  createPresentationSession,
+  PRESENTATION_CUSTOMER_ID,
+  PRESENTATION_SERVICE_ID,
+  PRESENTATION_SESSION_ID,
+  type PresentationFocus,
+} from '../data/presentation'
+import {
   formatAppointmentSummary,
   getServiceById,
   validateAndBuildAppointment,
@@ -144,6 +152,12 @@ interface AppDataContextValue {
   deleteMarketingPlan: (
     planId: string,
   ) => { ok: true } | { ok: false; error: string }
+  /** 路演聚焦：接待会话 / 客户详情 / 营销项目 */
+  presentationFocus: PresentationFocus | null
+  startPresentationFocus: () => void
+  clearPresentationFocus: () => void
+  /** 二次确认后由 UI 调用：恢复默认虚拟门店数据 */
+  resetLocalData: () => void
 }
 
 const AppDataContext = createContext<AppDataContextValue | null>(null)
@@ -247,12 +261,32 @@ function createInitialState(): PersistedState {
   return {
     version: 5,
     appointments: createSeedAppointments(),
-    customers: structuredClone(seedCustomers),
+    customers: [
+      createPresentationCustomer(),
+      ...structuredClone(seedCustomers).filter(
+        (c) => c.id !== PRESENTATION_CUSTOMER_ID,
+      ),
+    ],
     chatSessions: createSeedChatSessions(),
     followUpTasks: createSeedFollowUpTasks(),
     receptionRecords: structuredClone(seedReceptionRecords),
     marketingPlans: [],
   }
+}
+
+/** 旧本地数据缺少路演客户时补齐，不清空用户已有业务数据 */
+function ensurePresentationAssets(state: PersistedState): PersistedState {
+  let customers = state.customers
+  let chatSessions = state.chatSessions
+
+  if (!customers.some((c) => c.id === PRESENTATION_CUSTOMER_ID)) {
+    customers = [createPresentationCustomer(), ...customers]
+  }
+  if (!chatSessions.some((s) => s.id === PRESENTATION_SESSION_ID)) {
+    chatSessions = [createPresentationSession(), ...chatSessions]
+  }
+
+  return { ...state, customers, chatSessions }
 }
 
 function migrateLegacy(raw: unknown): PersistedState | null {
@@ -295,7 +329,7 @@ function loadState(): { state: PersistedState; error: string | null } {
         Array.isArray(parsed.appointments)
       ) {
         return {
-          state: {
+          state: ensurePresentationAssets({
             ...parsed,
             version: 5,
             customers: (parsed.customers ?? []).map((c) =>
@@ -308,7 +342,7 @@ function loadState(): { state: PersistedState; error: string | null } {
             marketingPlans: Array.isArray(parsed.marketingPlans)
               ? parsed.marketingPlans
               : [],
-          },
+          }),
           error: null,
         }
       }
@@ -318,7 +352,9 @@ function loadState(): { state: PersistedState; error: string | null } {
       const legacy = localStorage.getItem(key)
       if (!legacy) continue
       const migrated = migrateLegacy(JSON.parse(legacy))
-      if (migrated) return { state: migrated, error: null }
+      if (migrated) {
+        return { state: ensurePresentationAssets(migrated), error: null }
+      }
     }
 
     return { state: createInitialState(), error: null }
@@ -380,6 +416,35 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
   const [storageError, setStorageError] = useState<string | null>(
     initial.current.error,
   )
+  const [presentationFocus, setPresentationFocus] =
+    useState<PresentationFocus | null>(null)
+  const focusTokenRef = useRef(0)
+
+  const startPresentationFocus = useCallback(() => {
+    focusTokenRef.current += 1
+    setPresentationFocus({
+      sessionId: PRESENTATION_SESSION_ID,
+      customerId: PRESENTATION_CUSTOMER_ID,
+      serviceId: PRESENTATION_SERVICE_ID,
+      token: focusTokenRef.current,
+    })
+  }, [])
+
+  const clearPresentationFocus = useCallback(() => {
+    setPresentationFocus(null)
+  }, [])
+
+  const resetLocalData = useCallback(() => {
+    const fresh = createInitialState()
+    setAppointments(fresh.appointments)
+    setCustomers(fresh.customers)
+    setChatSessions(fresh.chatSessions)
+    setFollowUpTasks(fresh.followUpTasks)
+    setReceptionRecords(fresh.receptionRecords)
+    setMarketingPlans(fresh.marketingPlans)
+    setPresentationFocus(null)
+    setStorageError(null)
+  }, [])
 
   useEffect(() => {
     try {
@@ -1016,6 +1081,10 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       saveMarketingPlan,
       updateMarketingPlan,
       deleteMarketingPlan,
+      presentationFocus,
+      startPresentationFocus,
+      clearPresentationFocus,
+      resetLocalData,
     }),
     [
       appointments,
@@ -1025,6 +1094,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       receptionRecords,
       marketingPlans,
       storageError,
+      presentationFocus,
       getOverviewStats,
       getTodayBookedAppointments,
       getTodayActiveAppointments,
@@ -1052,6 +1122,9 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       saveMarketingPlan,
       updateMarketingPlan,
       deleteMarketingPlan,
+      startPresentationFocus,
+      clearPresentationFocus,
+      resetLocalData,
     ],
   )
 

@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Search } from 'lucide-react'
 import { services } from '../data/mockData'
+import { PRESENTATION_CUSTOMER_ID } from '../data/presentation'
 import { getTodayDate } from '../lib/dateUtils'
 import { useAppData } from '../store/AppDataContext'
 import { StatusBadge } from '../components/ui/StatusBadge'
@@ -37,13 +38,16 @@ export function CustomersPage() {
     updateCustomer,
     addFollowUpTask,
     completeFollowUpTask,
+    presentationFocus,
   } = useAppData()
 
   const [keyword, setKeyword] = useState('')
   const [projectFilter, setProjectFilter] = useState('全部')
   const [intent, setIntent] = useState<IntentLevel | '全部'>('全部')
   const [followFilter, setFollowFilter] = useState<FollowUpStatus | '全部'>('全部')
-  const [selectedId, setSelectedId] = useState<string | null>(null)
+  const [selectedId, setSelectedId] = useState<string | null>(
+    PRESENTATION_CUSTOMER_ID,
+  )
   const [message, setMessage] = useState('')
 
   // edit form
@@ -66,6 +70,17 @@ export function CustomersPage() {
     () => customers.find((c) => c.id === selectedId) ?? null,
     [customers, selectedId],
   )
+
+  useEffect(() => {
+    if (!presentationFocus?.customerId) return
+    if (customers.some((c) => c.id === presentationFocus.customerId)) {
+      setSelectedId(presentationFocus.customerId)
+      setKeyword('')
+      setProjectFilter('全部')
+      setIntent('全部')
+      setFollowFilter('全部')
+    }
+  }, [presentationFocus?.token, presentationFocus?.customerId, customers])
 
   useEffect(() => {
     if (!selected) return

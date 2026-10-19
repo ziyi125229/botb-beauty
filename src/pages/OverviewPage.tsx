@@ -1,11 +1,18 @@
+import { useState } from 'react'
 import {
   ArrowRight,
   CalendarDays,
   Megaphone,
   MessageCircleMore,
+  Play,
+  RotateCcw,
   Users,
 } from 'lucide-react'
 import { storeInfo } from '../data/mockData'
+import {
+  PRESENTATION_STEPS,
+  PRESENTATION_SERVICE_NAME,
+} from '../data/presentation'
 import { useAppData } from '../store/AppDataContext'
 import { StatCard } from '../components/ui/StatCard'
 import { StatusBadge } from '../components/ui/StatusBadge'
@@ -53,23 +60,108 @@ export function OverviewPage({ onNavigate }: OverviewPageProps) {
     getTodayActiveAppointments,
     getPendingFollowUpCustomers,
     getRecentReceptionSessions,
+    startPresentationFocus,
+    resetLocalData,
   } = useAppData()
+
+  const [showGuide, setShowGuide] = useState(false)
+  const [confirmReset, setConfirmReset] = useState(false)
+  const [resetToast, setResetToast] = useState('')
 
   const overviewStats = getOverviewStats()
   const todayAppointments = getTodayActiveAppointments()
   const followUpCustomers = getPendingFollowUpCustomers()
   const recentSessions = getRecentReceptionSessions(5)
 
+  const handleStartPresentation = () => {
+    startPresentationFocus()
+    setShowGuide(false)
+    onNavigate('reception')
+  }
+
+  const handleReset = () => {
+    resetLocalData()
+    setConfirmReset(false)
+    setResetToast('已恢复默认虚拟门店数据，各页面已同步更新。')
+    window.setTimeout(() => setResetToast(''), 2800)
+  }
+
   return (
     <div className="mx-auto max-w-[1280px] space-y-5 pb-2">
-      <section>
-        <h2 className="text-xl font-semibold text-text">
-          下午好，欢迎回到{storeInfo.name}
-        </h2>
-        <p className="mt-1.5 text-sm text-text-secondary">
-          查看今日门店经营情况，及时跟进客户与预约。数据与各模块实时联动。
-        </p>
+      <section className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <h2 className="text-xl font-semibold text-text">
+            下午好，欢迎回到{storeInfo.name}
+          </h2>
+          <p className="mt-1.5 text-sm text-text-secondary">
+            查看今日门店经营情况，及时跟进客户与预约。数据与各模块实时联动。
+          </p>
+        </div>
+        <button
+          type="button"
+          onClick={() => setShowGuide(true)}
+          className="inline-flex shrink-0 items-center justify-center gap-2 rounded-lg bg-brand-600 px-4 py-2.5 text-sm font-medium text-white shadow-sm transition-colors hover:bg-brand-700"
+        >
+          <Play size={16} fill="currentColor" />
+          开始演示
+        </button>
       </section>
+
+      {resetToast ? (
+        <div className="rounded-lg border border-brand-200 bg-brand-50 px-4 py-2.5 text-sm text-brand-800">
+          {resetToast}
+        </div>
+      ) : null}
+
+      {showGuide ? (
+        <section className="rounded-xl border border-brand-200 bg-gradient-to-br from-brand-50/80 to-surface-card p-5 shadow-[0_1px_2px_rgba(44,41,38,0.04)]">
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div>
+              <h3 className="text-sm font-semibold text-text">路演演示流程</h3>
+              <p className="mt-1 text-xs text-text-secondary">
+                贯穿客户：林女士 · 关注「{PRESENTATION_SERVICE_NAME}」·
+                初始为新客尚未预约。全程使用真实联动数据，不伪造统计。
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => setShowGuide(false)}
+              className="text-xs text-text-muted hover:text-text"
+            >
+              收起
+            </button>
+          </div>
+          <ol className="mt-4 grid gap-2 sm:grid-cols-2 xl:grid-cols-5">
+            {PRESENTATION_STEPS.map((item) => (
+              <li
+                key={item.step}
+                className="rounded-lg border border-border bg-surface-card px-3 py-3"
+              >
+                <p className="text-[11px] font-medium text-brand-600">
+                  步骤 {item.step}
+                </p>
+                <p className="mt-1 text-sm font-medium text-text">{item.title}</p>
+                <p className="mt-1 text-xs leading-relaxed text-text-secondary">
+                  {item.detail}
+                </p>
+              </li>
+            ))}
+          </ol>
+          <div className="mt-4 flex flex-wrap items-center gap-3">
+            <button
+              type="button"
+              onClick={handleStartPresentation}
+              className="inline-flex items-center gap-2 rounded-lg bg-brand-600 px-4 py-2 text-sm font-medium text-white hover:bg-brand-700"
+            >
+              <Play size={15} fill="currentColor" />
+              开始演示
+            </button>
+            <p className="text-xs text-text-muted">
+              将进入 AI 接待，并自动打开林女士会话
+            </p>
+          </div>
+        </section>
+      ) : null}
 
       <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {overviewStats.map((stat) => (
@@ -252,6 +344,41 @@ export function OverviewPage({ onNavigate }: OverviewPageProps) {
                 </button>
               )
             })}
+          </div>
+
+          <div className="border-t border-border px-4 py-3">
+            {!confirmReset ? (
+              <button
+                type="button"
+                onClick={() => setConfirmReset(true)}
+                className="inline-flex w-full items-center justify-center gap-2 rounded-lg border border-border px-3 py-2 text-xs text-text-secondary transition-colors hover:border-border hover:bg-surface hover:text-text"
+              >
+                <RotateCcw size={14} />
+                重置演示数据
+              </button>
+            ) : (
+              <div className="space-y-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-3">
+                <p className="text-xs leading-relaxed text-amber-900">
+                  将清空当前本地变更，并恢复默认虚拟门店数据。此操作不可撤销，且不影响任何外部真实系统。
+                </p>
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={handleReset}
+                    className="flex-1 rounded-md bg-amber-700 px-2 py-1.5 text-xs font-medium text-white hover:bg-amber-800"
+                  >
+                    确认重置
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setConfirmReset(false)}
+                    className="flex-1 rounded-md border border-border bg-surface-card px-2 py-1.5 text-xs text-text-secondary hover:bg-surface"
+                  >
+                    取消
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </section>
