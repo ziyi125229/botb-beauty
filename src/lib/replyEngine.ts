@@ -115,7 +115,7 @@ function replyPrice(service?: ServiceItem): string {
     return `${formatServiceLine(service)}。${service.description}`
   }
   const list = services.map((s) => formatServiceLine(s)).join('\n')
-  return `当前门店已配置的护理价格如下（演示数据）：\n${list}\n\n如需查询某一项目，请直接说出项目名称。未配置的项目我无法提供价格。`
+  return `当前门店已配置的护理价格如下（模拟数据）：\n${list}\n\n如需查询某一项目，请直接说出项目名称。未配置的项目我无法提供价格。`
 }
 
 function replyIntro(service?: ServiceItem): string {
@@ -136,19 +136,19 @@ export function generateReply(
   if (!text) return '请问有什么可以帮您？'
 
   if (isMedicalQuery(text)) {
-    return `抱歉，我无法提供医疗诊断、用药建议或疾病治疗方案。\n\n悦颜皮肤管理中心提供的是非医疗性质的皮肤护理与咨询服务。如您有皮肤疾病、用药或治疗相关问题，请前往正规医疗机构咨询专业医生。\n\n已为您登记「待人工处理」事项，店员可在客户管理 / 经营概览待处理事项中查看（前端 Demo，非真实转接系统）。`
+    return `抱歉，我无法提供医疗诊断、用药建议或疾病治疗方案。\n\n悦颜皮肤管理中心提供的是非医疗性质的皮肤护理与咨询服务。如您有皮肤疾病、用药或治疗相关问题，请前往正规医疗机构咨询专业医生。\n\n已为您登记「待人工处理」事项，店员可在客户管理 / 经营概览待处理事项中查看（前端模拟，非真实转接系统）。`
   }
 
   if (mentionsUnknownService(text)) {
     const names = services.map((s) => s.name).join('、')
-    return `该项目暂未配置在本门店演示价目表中，我无法提供价格或详情。\n\n当前可查询的项目有：${names}。`
+    return `该项目暂未配置在本门店价目表中，我无法提供价格或详情。\n\n当前可查询的项目有：${names}。`
   }
 
   const service = matchService(text)
 
   if (looksLikeUnknownPricedProject(text, service)) {
     const names = services.map((s) => s.name).join('、')
-    return `该项目暂未配置在本门店演示价目表中，我无法提供价格或详情。\n\n当前可查询的项目有：${names}。`
+    return `该项目暂未配置在本门店价目表中，我无法提供价格或详情。\n\n当前可查询的项目有：${names}。`
   }
 
   if (/我的预约|预约详情|预约信息|查一下预约/.test(text)) {
@@ -187,10 +187,10 @@ export function generateReply(
   }
 
   if (/你好|您好|在吗|嗨|hello/i.test(text)) {
-    return `您好，我是${storeInfo.name}的 AI 接待助手（规则演示版）。可以帮您查询项目价格、营业时间、门店地址，或完成预约流程。`
+    return `您好，我是${storeInfo.name}的 AI 接待助手（规则版）。可以帮您查询项目价格、营业时间、门店地址，或完成预约流程。`
   }
 
-  return `我可以协助您查询项目价格与介绍、营业时间与门店地址，以及预约流程（前端演示，未接入大模型）。\n\n您可以说「我想预约一次护理」开始预约，或点击下方快捷问题。`
+  return `我可以协助您查询项目价格与介绍、营业时间与门店地址，以及预约流程（前端模拟，未接入大模型）。\n\n您可以说「我想预约一次护理」开始预约，或点击下方快捷问题。`
 }
 
 export function nowTimeLabel(): string {

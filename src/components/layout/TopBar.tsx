@@ -52,7 +52,7 @@ export function TopBar({ currentPage }: TopBarProps) {
         </span>
 
         <span className="rounded-md border border-border bg-surface px-2 py-0.5 text-xs text-text-muted">
-          Demo 演示版
+          本地模拟版
         </span>
       </div>
     </header>

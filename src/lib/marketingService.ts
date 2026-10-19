@@ -589,7 +589,7 @@ export function generateMarketingContent(
   const footer = [
     '——',
     `门店：${storeInfo.name}`,
-    '生成方式：本地模板规则（Demo，未接入大模型）',
+    '生成方式：本地模板规则（未接入大模型）',
     '本内容仅供店主编辑参考，不代表已发送给客户。',
   ].join('\n')
 

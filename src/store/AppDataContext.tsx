@@ -45,11 +45,16 @@ import type {
 } from '../types'
 import { ACTIVE_APPOINTMENT_STATUSES } from '../types'
 
-const STORAGE_KEY = 'botb-demo-data-v4'
-const LEGACY_KEYS = ['botb-demo-data-v3', 'botb-demo-data-v2']
+const STORAGE_KEY = 'botb-beauty-data-v5'
+const LEGACY_KEYS = [
+  'botb-beauty-data-v4',
+  'botb-demo-data-v4',
+  'botb-demo-data-v3',
+  'botb-demo-data-v2',
+]
 
 interface PersistedState {
-  version: 4
+  version: 5
   appointments: Appointment[]
   customers: Customer[]
   chatSessions: ChatSession[]
@@ -168,7 +173,7 @@ function normalizeCustomer(raw: Record<string, unknown>): Customer {
     intentLevel,
     intentReason: String(
       raw.intentReason ??
-        (raw.notes ? `历史备注：${raw.notes}` : '演示数据初始判定'),
+        (raw.notes ? `历史备注：${raw.notes}` : '初始数据判定'),
     ),
     intentManual: Boolean(raw.intentManual),
     tags,
@@ -240,7 +245,7 @@ function normalizeChatSession(raw: ChatSession): ChatSession {
 
 function createInitialState(): PersistedState {
   return {
-    version: 4,
+    version: 5,
     appointments: createSeedAppointments(),
     customers: structuredClone(seedCustomers),
     chatSessions: createSeedChatSessions(),
@@ -256,7 +261,7 @@ function migrateLegacy(raw: unknown): PersistedState | null {
   if (!Array.isArray(data.appointments)) return null
 
   return {
-    version: 4,
+    version: 5,
     appointments: data.appointments as Appointment[],
     customers: Array.isArray(data.customers)
       ? data.customers.map((c) =>
@@ -285,10 +290,14 @@ function loadState(): { state: PersistedState; error: string | null } {
     const current = localStorage.getItem(STORAGE_KEY)
     if (current) {
       const parsed = JSON.parse(current) as PersistedState
-      if (parsed?.version === 4 && Array.isArray(parsed.appointments)) {
+      if (
+        (parsed?.version === 5 || parsed?.version === 4) &&
+        Array.isArray(parsed.appointments)
+      ) {
         return {
           state: {
             ...parsed,
+            version: 5,
             customers: (parsed.customers ?? []).map((c) =>
               normalizeCustomer(c as unknown as Record<string, unknown>),
             ),
@@ -316,7 +325,7 @@ function loadState(): { state: PersistedState; error: string | null } {
   } catch {
     return {
       state: createInitialState(),
-      error: '本地数据读取失败，已使用初始演示数据。',
+      error: '本地数据读取失败，已使用初始模拟数据。',
     }
   }
 }
@@ -375,7 +384,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     try {
       const payload: PersistedState = {
-        version: 4,
+        version: 5,
         appointments,
         customers,
         chatSessions,

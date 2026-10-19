@@ -155,7 +155,7 @@ export function ReceptionPage() {
       [
         createMessage(
           'assistant',
-          `预约成功！\n\n${formatAppointmentSummary(result.appointment)}\n\n预约已写入统一数据源，经营概览与客户档案将同步更新。（前端 Demo，未接入真实后端）`,
+          `预约成功！\n\n${formatAppointmentSummary(result.appointment)}\n\n预约已写入统一数据源，经营概览与客户档案将同步更新。（前端模拟，未接入真实后端）`,
         ),
       ],
       {
@@ -420,7 +420,7 @@ export function ReceptionPage() {
             {activeSession?.customerName ?? '选择会话'}
           </h3>
           <p className="mt-0.5 text-xs text-text-muted">
-            AI 接待助手 · 规则预约流程（前端 Demo，未接入大模型）
+            AI 接待助手 · 规则预约流程（前端模拟，未接入大模型）
             {draft.step !== 'idle' ? ` · 当前步骤：${draft.step}` : ''}
           </p>
         </div>

@@ -437,7 +437,7 @@ export function processBookingText(
         draft: { ...nextDraft, step: 'collect_service' },
         replies: [
           msg(
-            `好的，我来帮您预约（演示流程，营业时间 ${storeInfo.openTime}–${storeInfo.closeTime}）。请先选择护理项目：`,
+            `好的，我来帮您预约（营业时间 ${storeInfo.openTime}–${storeInfo.closeTime}）。请先选择护理项目：`,
             [...serviceActions(), { type: 'cancel_booking_flow' }],
           ),
         ],

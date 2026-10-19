@@ -10,7 +10,7 @@ import type {
 } from '../types'
 import { addDays, addMinutesToTime, getTodayDate } from '../lib/dateUtils'
 
-/** 演示门店基础信息（虚构） */
+/** 示例门店基础信息（虚构） */
 export const storeInfo: StoreInfo = {
   name: '悦颜皮肤管理中心',
   brand: 'BotB 美业门店智能体',

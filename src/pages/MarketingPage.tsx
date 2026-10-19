@@ -303,7 +303,7 @@ export function MarketingPage() {
             <div className="flex items-center gap-2">
               <h2 className="text-lg font-semibold text-text">AI 营销助手</h2>
               <span className="rounded-md border border-border bg-surface px-2 py-0.5 text-[11px] text-text-muted">
-                本地 Demo 模式
+                本地模拟模式
               </span>
             </div>
             <p className="mt-1.5 text-sm text-text-secondary">
@@ -543,7 +543,7 @@ export function MarketingPage() {
             <div className="mt-6 rounded-lg border border-border bg-surface px-4 py-16 text-center text-sm text-text-secondary">
               正在按本地模板组合文案…
               <p className="mt-2 text-xs text-text-muted">
-                非真实模型调用，仅 Demo 处理状态
+                非真实模型调用，仅本地处理状态
               </p>
             </div>
           ) : null}
@@ -635,7 +635,7 @@ export function MarketingPage() {
               </button>
             </div>
             <p className="mt-1 text-xs text-text-muted">
-              保存在本地（botb-demo-data-v4），刷新后仍可访问
+              保存在本地（botb-beauty-data-v5），刷新后仍可访问
             </p>
             <ul className="mt-4 max-h-[60vh] space-y-3 overflow-y-auto">
               {marketingPlans.length === 0 ? (
