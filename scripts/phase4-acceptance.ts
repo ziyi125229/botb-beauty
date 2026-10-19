@@ -44,7 +44,7 @@ function deepClone<T>(v: T): T {
   return structuredClone(v)
 }
 
-// —— 可变演示状态（模拟 AppDataContext）——
+// —— 可变运行时状态（模拟 AppDataContext）——
 let appointments = createSeedAppointments()
 let customers = deepClone(seedCustomers)
 let chatSessions = createSeedChatSessions()
